@@ -7,7 +7,7 @@ export default new Router({
   routes: [
     // {
     //   path: '/',
-    //   name: 'jl-calendar.vue',
+    //   name: 'calendar.vue',
     //   component: require('../components/calendar').default
     // },
     // {

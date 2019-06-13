@@ -1,6 +1,6 @@
 <template>
     <div id="app">
-        <jl-calendar></jl-calendar>
+        <calendar></calendar>
     </div>
 </template>
 
@@ -10,18 +10,20 @@
   import 'bootstrap/dist/css/bootstrap.css'
   import 'bootstrap-vue/dist/bootstrap-vue.css'
 
-  import jlCalendar from './components/jl-calendar'
+  import calendar from './components/calendar'
 
   Vue.use(BootstrapVue)
 
   export default {
     name: 'remind-vue',
     components: {
-      jlCalendar
+      calendar
     }
   }
 </script>
 
 <style>
-
+#app{
+    margin: 3px;
+}
 </style>
