@@ -42,7 +42,7 @@ function createWindow () {
       e.preventDefault()
       mainWindow.hide()
       tray.displayBalloon({
-        title: '打败ToDo指日可待',
+        title: 'To-D0 powered by JL',
         content: '程序已最小化到系统托盘！',
         icon: path.join(envPath, 'static/icons/lufi.jpg')
       })
@@ -63,7 +63,7 @@ function createWindow () {
       }
     }
   ])
-  tray.setToolTip('打败ToDo指日可待')
+  tray.setToolTip('To-D0 powered by JL')
   tray.setContextMenu(contextMenu)
   tray.on('double-click', function () {
     mainWindow.show()
