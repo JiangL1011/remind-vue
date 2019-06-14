@@ -22,7 +22,7 @@
     "postinstall": "npm run lint:fix"
   },
   "build": {
-    "productName": "remind-vue",
+    "productName": "To-Do powered by JL",
     "appId": "com.jl.remind",
     "directories": {
       "output": "build"
