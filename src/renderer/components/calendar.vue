@@ -29,6 +29,7 @@
                 <span v-bind:class="day.dayType">{{ day.dayOfMonth }}</span>
             </div>
         </div>
+        <div>{{ selectedDate }}</div>
     </div>
 </template>
 
@@ -55,7 +56,6 @@
     },
     methods: {
       initCalendar: function (year, month) {
-        clearSelectedDay()
         this.year = year || moment().format('YYYY')
         this.month = month || moment().format('MM')
         const firstDayOfMonth = moment(this.year + this.month + '01', 'YYYYMMDD')
@@ -100,6 +100,18 @@
         const el = event.currentTarget
         clearSelectedDay()
         el.classList.add('selected-day')
+        const span = el.childNodes[0]
+        const dayType = span.classList[0]
+        const dayOfMonth = span.innerText > 9 ? span.innerText : ('0' + span.innerText)
+        if (dayType === 'pre') {
+          const temp = moment(this.year + this.month, 'YYYYMM').add(-1, 'M').format('YYYYMM')
+          this.selectedDate = moment(temp + dayOfMonth).format('YYYYMMDD')
+        } else if (dayType === 'next') {
+          const temp = moment(this.year + this.month, 'YYYYMM').add(1, 'M').format('YYYYMM')
+          this.selectedDate = moment(temp + dayOfMonth).format('YYYYMMDD')
+        } else {
+          this.selectedDate = moment(this.year + this.month + dayOfMonth).format('YYYYMMDD')
+        }
       }
     }
   }
