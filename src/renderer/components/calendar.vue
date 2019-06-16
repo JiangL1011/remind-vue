@@ -25,11 +25,10 @@
             </div>
         </div>
         <div class="calendar-body">
-            <div :class="'calendar-body-day '+ day.isToday" @click="selectDay" v-for="day in days">
+            <div :class="'calendar-body-day '+day.isToday+' '+day.isSelected" @click="selectDay" v-for="day in days">
                 <span v-bind:class="day.dayType">{{ day.dayOfMonth }}</span>
             </div>
         </div>
-        <div>{{ selectedDate }}</div>
     </div>
 </template>
 
@@ -42,6 +41,8 @@
     name: 'calendar',
     data: function () {
       return {
+        year: '',
+        month: '',
         week: ['日', '一', '二', '三', '四', '五', '六'],
         // days中的元素是：{dayOfMonth:1,dayType:'curr'}
         days: [],
@@ -73,7 +74,8 @@
           this.days[i] = {
             dayOfMonth,
             dayType: dayType[dayTypeIndex],
-            isToday: today === currLoopDate ? 'today' : ''
+            isToday: today === currLoopDate ? 'today' : '',
+            isSelected: currLoopDate === this.selectedDate ? 'selected-day' : ''
           }
           currLoopDay = currLoopDay.add(1, 'd')
         }
@@ -131,7 +133,7 @@
     }
 
     .calendar-realtime {
-        height: 65px;
+        height: 80px;
         border-bottom: 1px solid #CEF1FB;
         padding: 3px 14px 3px 14px;
     }
@@ -139,6 +141,7 @@
     .calendar-realtime-clock {
         font-size: x-large;
         font-weight: bolder;
+        margin-top: 7px;
     }
 
     .calendar-realtime-date {
