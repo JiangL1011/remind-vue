@@ -29,6 +29,9 @@
                 <span v-bind:class="day.dayType">{{ day.dayOfMonth }}</span>
             </div>
         </div>
+        <div id="calendar-task-panel" class="calendar-task">
+            <p>{{ fromNow }}</p>
+        </div>
     </div>
 </template>
 
@@ -48,15 +51,22 @@
         days: [],
         realtime: moment().format('hh:mm:ss a'),
         realDate: moment().format('YYYY-MM-DD dddd'),
-        selectedDate: moment().format('YYYYMMDD')
+        selectedDate: moment().format('YYYYMMDD'),
+        fromNow: ''
       }
     },
     created: function () {
       this.initCalendar()
       this.initClock()
     },
+    mounted: function () {
+      const clientHeight = document.documentElement.clientHeight
+      const taskPanel = document.getElementById('calendar-task-panel')
+      taskPanel.style.height = clientHeight - 408 + 'px'
+    },
     methods: {
       initCalendar: function (year, month) {
+        clearSelectedDay()
         this.year = year || moment().format('YYYY')
         this.month = month || moment().format('MM')
         const firstDayOfMonth = moment(this.year + this.month + '01', 'YYYYMMDD')
@@ -79,6 +89,7 @@
           }
           currLoopDay = currLoopDay.add(1, 'd')
         }
+        this.showFromNow()
       },
       changeMonth: function (direct) {
         const newMonth = moment(this.year + this.month, 'YYYYMM').add(1 * direct, 'M')
@@ -114,6 +125,16 @@
         } else {
           this.selectedDate = moment(this.year + this.month + dayOfMonth).format('YYYYMMDD')
         }
+        this.showFromNow()
+      },
+      showFromNow: function () {
+        if (this.selectedDate === moment().format('YYYYMMDD')) {
+          this.fromNow = '今天'
+        } else {
+          const now = moment().format('HHmmss')
+          this.fromNow = moment(this.selectedDate + now, 'YYYYMMDDHHmmss').fromNow().replace('内', '后')
+        }
+        this.fromNow += '\xa0\xa0\xa0' + moment(this.selectedDate, 'YYYYMMDD').format('YYYY-MM-DD')
       }
     }
   }
@@ -124,17 +145,24 @@
       oldSelected[0].classList.remove('selected-day')
     }
   }
+
+  window.onresize = function () {
+    const clientHeight = document.documentElement.clientHeight
+    const taskPanel = document.getElementById('calendar-task-panel')
+    taskPanel.style.height = clientHeight - 408 + 'px'
+  }
 </script>
 
 <style scoped>
     .calendar-outline {
         width: 300px;
-        border: 1px solid #CEF1FB;
+        border: 1px solid #B2D5DF;
+        border-radius: 4px;
     }
 
     .calendar-realtime {
         height: 80px;
-        border-bottom: 1px solid #CEF1FB;
+        border-bottom: 1px solid #B2D5DF;
         padding: 3px 14px 3px 14px;
     }
 
@@ -208,6 +236,10 @@
 
     .selected-day {
         border-color: #3361ff;
+    }
+
+    .calendar-task {
+        border-top: 1px solid #B2D5DF;
     }
 
 </style>
