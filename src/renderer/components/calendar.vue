@@ -59,11 +59,6 @@
       this.initCalendar()
       this.initClock()
     },
-    mounted: function () {
-      const clientHeight = document.documentElement.clientHeight
-      const taskPanel = document.getElementById('calendar-task-panel')
-      taskPanel.style.height = clientHeight - 408 + 'px'
-    },
     methods: {
       initCalendar: function (year, month) {
         clearSelectedDay()
@@ -145,17 +140,11 @@
       oldSelected[0].classList.remove('selected-day')
     }
   }
-
-  window.onresize = function () {
-    const clientHeight = document.documentElement.clientHeight
-    const taskPanel = document.getElementById('calendar-task-panel')
-    taskPanel.style.height = clientHeight - 408 + 'px'
-  }
 </script>
 
 <style scoped>
     .calendar-outline {
-        width: 300px;
+        width: 299px;
         border: 1px solid #B2D5DF;
         border-radius: 4px;
     }
@@ -164,6 +153,8 @@
         height: 80px;
         border-bottom: 1px solid #B2D5DF;
         padding: 3px 14px 3px 14px;
+        border-top-left-radius: 4px;
+        border-top-right-radius: 4px;
     }
 
     .calendar-realtime-clock {

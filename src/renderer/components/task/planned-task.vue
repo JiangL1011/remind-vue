@@ -1,12 +1,12 @@
 <template>
     <div>
-        123
+        Planned Task
     </div>
 </template>
 
 <script>
   export default {
-    name: 'task'
+    name: 'planned-task'
   }
 </script>
 

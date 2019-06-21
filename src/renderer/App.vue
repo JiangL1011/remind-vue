@@ -12,7 +12,7 @@
   import 'bootstrap-vue/dist/bootstrap-vue.css'
 
   import calendar from './components/calendar'
-  import task from './components/task'
+  import task from './components/task/task'
 
   Vue.use(BootstrapVue)
 
@@ -21,14 +21,32 @@
     components: {
       calendar,
       task
+    },
+    mounted () {
+      resize()
     }
+  }
+
+  window.onresize = function () {
+    resize()
+  }
+
+  // 自适应各个组件高度，使其充满整个窗口并防止出现空白和滚动条
+  const resize = function () {
+    const clientHeight = document.documentElement.clientHeight
+
+    const taskPanel = document.getElementById('calendar-task-panel')
+    taskPanel.style.height = clientHeight - 408 + 'px'
+
+    const taskOutline = document.getElementById('task-outline')
+    taskOutline.style.height = clientHeight - 48 + 'px'
   }
 </script>
 
 <style>
-#app{
-    margin: 3px;
-    display: flex;
-    flex-wrap: nowrap;
-}
+    #app {
+        margin: 3px;
+        display: flex;
+        flex-wrap: nowrap;
+    }
 </style>
