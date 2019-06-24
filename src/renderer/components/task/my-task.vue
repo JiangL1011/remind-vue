@@ -6,6 +6,15 @@
         </div>
         <div id="task-list">
             <table id="task-table">
+                <tr id="content-input" class="task-item" v-show="allowAdd">
+                    <td style="width: 25px">
+                    </td>
+                    <td id="new-task" contenteditable="true">
+                    </td>
+                    <td class="task-plus-icon">
+                        <i class="fa fa-plus" @click="addOrCancel(true)"></i>
+                    </td>
+                </tr>
                 <tr class="task-item" v-for="(task, index) in taskList">
                     <td class="task-check-icon"
                         @click="finishTask(task)"
@@ -13,11 +22,10 @@
                         @mouseleave="mouseleaveCheckIcon(task)">
                         <i class="fa fa-check" v-show="task.finished||task.tempShow"></i>
                     </td>
-                    <td class="task-content" :contenteditable="allowAdd && index===0">
+                    <td class="task-content">
                         <span :class="task.finished?'finished':''">{{ task.content }}</span>
                     </td>
                     <td class="task-plus-icon">
-                        <i class="fa fa-plus" v-if="index===0 && allowAdd" @click="addOrCancel(true)"></i>
                     </td>
                 </tr>
             </table>
