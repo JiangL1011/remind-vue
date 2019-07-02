@@ -2,30 +2,32 @@
     <div id="task-outline">
         <div id="add-task">
             <b-button @click="showAddTaskForm" block variant="primary" v-if="!allowAdd">添加任务</b-button>
-            <b-button @click="addOrCancel(false)" block variant="primary" v-if="allowAdd">取消添加</b-button>
+            <b-button @click="addOrCancel(true)" block variant="primary" v-if="allowAdd">确认添加</b-button>
         </div>
         <div id="task-list">
             <table id="task-table">
                 <tr id="content-input" class="task-item" v-show="allowAdd">
                     <td style="width: 25px">
                     </td>
-                    <td id="new-task" contenteditable="true">
+                    <td id="new-task">
+                        <b-input id="new-task-input" v-model="newTaskContent"></b-input>
                     </td>
-                    <td class="task-plus-icon">
-                        <i class="fa fa-plus" @click="addOrCancel(true)"></i>
+                    <td class="task-del-icon">
+                        <i class="fas fa-times" @click="addOrCancel(false)"></i>
                     </td>
                 </tr>
-                <tr class="task-item" v-for="(task, index) in taskList">
+                <tr class="task-item" v-for="(task,index) in taskList"
+                    @mouseenter="mouseoverTask(task)"
+                    @mouseleave="mouseleaveTask(task)">
                     <td class="task-check-icon"
-                        @click="finishTask(task)"
-                        @mouseenter="mouseoverCheckIcon(task)"
-                        @mouseleave="mouseleaveCheckIcon(task)">
-                        <i class="fa fa-check" v-show="task.finished||task.tempShow"></i>
+                        @click="finishTask(task)">
+                        <i class="fa fa-check" v-show="task.finished||task.hover"></i>
                     </td>
                     <td class="task-content">
                         <span :class="task.finished?'finished':''">{{ task.content }}</span>
                     </td>
-                    <td class="task-plus-icon">
+                    <td class="task-del-icon">
+                        <i class="fas fa-times" v-show="task.hover" @click="deleteTask(index)"></i>
                     </td>
                 </tr>
             </table>
@@ -39,48 +41,43 @@
     data: function () {
       return {
         taskList: [],
-        allowAdd: false
+        allowAdd: false,
+        newTaskContent: ''
       }
     },
     methods: {
       showAddTaskForm () {
         this.allowAdd = true
+        const input = document.getElementById('new-task-input')
+        input.focus()
         const taskListTag = document.getElementById('task-list')
         taskListTag.scrollTop = 0
-        this.taskList.unshift({
-          id: new Date().getTime(),
-          content: '',
-          finished: false,
-          // 用于控制鼠标移动到图标上临时显示的参数
-          tempShow: false
-        })
-        // 触发一个异步操作，保证能获取到task-content
-        setTimeout(function () {
-          const currContentInput = document.getElementsByClassName('task-content')[0]
-          currContentInput.innerText = ''
-          currContentInput.focus()
-        })
       },
       addOrCancel (add) {
-        const taskContent = document.getElementsByClassName('task-content')[0]
-        if (!add || taskContent.innerText.trim().length === 0) {
-          this.taskList.shift()
-          if (this.taskList.length > 0) {
-            taskContent.innerText = this.taskList[0].content
-          }
-        } else {
-          this.taskList[0].content = taskContent.innerText.trim()
+        const content = this.newTaskContent.trim()
+        if (content.length > 0 && add) {
+          this.taskList.unshift({
+            id: new Date().getTime(),
+            content: content,
+            finished: false,
+            // 用于控制当前hover状态
+            hover: false
+          })
         }
+        this.newTaskContent = ''
         this.allowAdd = false
       },
       finishTask (task) {
         task.finished = !task.finished
       },
-      mouseoverCheckIcon (task) {
-        task.tempShow = true
+      deleteTask (index) {
+        this.taskList.splice(index, 1)
       },
-      mouseleaveCheckIcon (task) {
-        task.tempShow = false
+      mouseoverTask (task) {
+        task.hover = true
+      },
+      mouseleaveTask (task) {
+        task.hover = false
       }
     }
   }
@@ -103,12 +100,12 @@
         min-height: 28px;
     }
 
-    .fa-plus {
-        color: #3361ff;
-    }
-
     .fa-check {
         color: #00b400;
+    }
+
+    .fa-times {
+        color: red;
     }
 
     .task-content {
@@ -116,7 +113,7 @@
         outline-style: none;
     }
 
-    .task-check-icon, .task-plus-icon {
+    .task-check-icon, .task-del-icon {
         width: 25px;
         text-align: center;
         cursor: pointer;
@@ -124,19 +121,25 @@
 
     #task-table {
         width: 100%;
+        table-layout: fixed;
     }
 
     .task-item {
         border-bottom: 1px solid #B2D5DF;
         line-height: 32px;
+        word-wrap: break-word;
     }
 
     .task-item:hover {
         background: #e8eef7;
     }
 
-    .finished{
+    .finished {
         text-decoration-line: line-through;
+    }
+
+    #new-task-input {
+        height: 30px;
     }
 
 </style>
