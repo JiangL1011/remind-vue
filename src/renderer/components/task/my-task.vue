@@ -6,10 +6,10 @@
         </div>
         <div id="task-list">
             <table id="task-table">
-                <tr id="content-input" class="task-item" v-show="allowAdd">
+                <tr id="new-task-tr" class="task-item" v-show="allowAdd">
                     <td style="width: 25px">
                     </td>
-                    <td id="new-task">
+                    <td id="new-task" style="overflow: hidden">
                         <b-input id="new-task-input" v-model="newTaskContent"></b-input>
                     </td>
                     <td class="task-del-icon">

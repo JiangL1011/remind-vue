@@ -1,12 +1,13 @@
 <template>
     <div>
-        Planned Task
+        {{ plannedTaskList }}
     </div>
 </template>
 
 <script>
   export default {
-    name: 'planned-task'
+    name: 'planned-task',
+    props: ['plannedTaskList']
   }
 </script>
 
