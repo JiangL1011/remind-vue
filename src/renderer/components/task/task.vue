@@ -37,6 +37,10 @@
 
 <style scoped>
     #task {
-        width: 40%;
+        padding-left: 5px;
+        padding-right: 5px;
+        width: 500px;
+        min-width: 400px;
+        flex-grow: 1.5;
     }
 </style>

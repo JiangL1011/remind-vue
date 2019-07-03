@@ -2,6 +2,7 @@
     <div id="app">
         <calendar></calendar>
         <task></task>
+        <detail></detail>
     </div>
 </template>
 
@@ -13,6 +14,7 @@
 
   import calendar from './components/calendar'
   import task from './components/task/task'
+  import detail from './components/detail/detail'
 
   Vue.use(BootstrapVue)
 
@@ -20,7 +22,8 @@
     name: 'remind-vue',
     components: {
       calendar,
-      task
+      task,
+      detail
     },
     mounted () {
       resize()
@@ -48,5 +51,6 @@
         margin: 3px;
         display: flex;
         flex-wrap: nowrap;
+        justify-content: space-between;
     }
 </style>
