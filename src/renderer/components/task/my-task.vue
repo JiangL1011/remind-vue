@@ -16,18 +16,20 @@
                         <i class="fas fa-times" @click="addOrCancel(false)"></i>
                     </td>
                 </tr>
-                <tr class="task-item" v-for="(task,index) in taskList"
-                    @mouseenter="mouseoverTask(task)"
-                    @mouseleave="mouseleaveTask(task)">
-                    <td class="task-check-icon"
-                        @click="finishTask(task)">
-                        <i class="fa fa-check" v-show="task.finished||task.hover"></i>
+                <tr class="task-item"
+                    v-for="(task,index) in taskList"
+                    @mouseenter="mouseoverTask(index)"
+                    @mouseleave="mouseleaveTask()"
+                    @click="selectedIndex=index"
+                    :style="selectedIndex===index?'background:#e8eef7':''">
+                    <td class="task-check-icon" @click="finishTask(task)">
+                        <i class="fa fa-check" v-show="task.finished||hoverIndex===index"></i>
                     </td>
                     <td class="task-content">
                         <span :class="task.finished?'finished':''">{{ task.content }}</span>
                     </td>
                     <td class="task-del-icon">
-                        <i class="fas fa-times" v-show="task.hover" @click="deleteTask(index)"></i>
+                        <i class="fas fa-times" v-show="hoverIndex===index" @click="deleteTask(index)"></i>
                     </td>
                 </tr>
             </table>
@@ -42,7 +44,9 @@
       return {
         taskList: [],
         allowAdd: false,
-        newTaskContent: ''
+        newTaskContent: '',
+        selectedIndex: -1,
+        hoverIndex: -1
       }
     },
     methods: {
@@ -59,9 +63,7 @@
           this.taskList.unshift({
             id: new Date().getTime(),
             content: content,
-            finished: false,
-            // 用于控制当前hover状态
-            hover: false
+            finished: false
           })
         }
         this.newTaskContent = ''
@@ -73,11 +75,11 @@
       deleteTask (index) {
         this.taskList.splice(index, 1)
       },
-      mouseoverTask (task) {
-        task.hover = true
+      mouseoverTask (index) {
+        this.hoverIndex = index
       },
-      mouseleaveTask (task) {
-        task.hover = false
+      mouseleaveTask () {
+        this.hoverIndex = -1
       }
     }
   }
