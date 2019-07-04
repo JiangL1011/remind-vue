@@ -7,7 +7,11 @@
 <script>
   export default {
     name: 'planned-task',
-    props: ['plannedTaskList']
+    data: function () {
+      return {
+        plannedTaskList: []
+      }
+    }
   }
 </script>
 

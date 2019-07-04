@@ -10,7 +10,7 @@
                     <td style="width: 25px">
                     </td>
                     <td id="new-task" style="overflow: hidden">
-                        <b-input id="new-task-input" v-model="newTaskContent"></b-input>
+                        <b-input id="new-task-input" v-model="newTaskTitle"></b-input>
                     </td>
                     <td class="task-del-icon">
                         <i class="fas fa-times" @click="addOrCancel(false)"></i>
@@ -20,13 +20,13 @@
                     v-for="(task,index) in taskList"
                     @mouseenter="mouseoverTask(index)"
                     @mouseleave="mouseleaveTask()"
-                    @click="selectedIndex=index"
+                    @click="clickTask(task, index)"
                     :style="selectedIndex===index?'background:#e8eef7':''">
                     <td class="task-check-icon" @click="finishTask(task)">
                         <i class="fa fa-check" v-show="task.finished||hoverIndex===index"></i>
                     </td>
-                    <td class="task-content">
-                        <span :class="task.finished?'finished':''">{{ task.content }}</span>
+                    <td class="task-title">
+                        <span :class="task.finished?'finished':''">{{ task.title }}</span>
                     </td>
                     <td class="task-del-icon">
                         <i class="fas fa-times" v-show="hoverIndex===index" @click="deleteTask(index)"></i>
@@ -44,7 +44,7 @@
       return {
         taskList: [],
         allowAdd: false,
-        newTaskContent: '',
+        newTaskTitle: '',
         selectedIndex: -1,
         hoverIndex: -1
       }
@@ -58,15 +58,18 @@
         taskListTag.scrollTop = 0
       },
       addOrCancel (add) {
-        const content = this.newTaskContent.trim()
-        if (content.length > 0 && add) {
+        const title = this.newTaskTitle.trim()
+        if (title.length > 0 && add) {
           this.taskList.unshift({
             id: new Date().getTime(),
-            content: content,
-            finished: false
+            title: title,
+            finished: false,
+            isPlanned: false
           })
+          // 添加新任务后选中的任务的索引会比原先大1
+          this.selectedIndex++
         }
-        this.newTaskContent = ''
+        this.newTaskTitle = ''
         this.allowAdd = false
       },
       finishTask (task) {
@@ -80,7 +83,16 @@
       },
       mouseleaveTask () {
         this.hoverIndex = -1
+      },
+      clickTask (task, index) {
+        this.selectedIndex = index
+        // 将数据传递到detail模块
+        this.$parent.$parent.$refs.detail.task = this.taskList.length === 0 ? {} : task
       }
+    },
+    mounted () {
+      // 将数据和计划日程模块的数据绑定
+      this.$parent.$refs.plannedTask.plannedTaskList = this.taskList
     }
   }
 </script>
@@ -110,7 +122,7 @@
         color: red;
     }
 
-    .task-content {
+    .task-title {
         word-wrap: break-word;
         outline-style: none;
     }

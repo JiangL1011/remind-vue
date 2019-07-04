@@ -2,7 +2,7 @@
     <div id="app">
         <calendar></calendar>
         <task></task>
-        <detail></detail>
+        <detail ref="detail"></detail>
     </div>
 </template>
 
