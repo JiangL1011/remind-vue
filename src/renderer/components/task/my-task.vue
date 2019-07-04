@@ -64,7 +64,14 @@
             id: new Date().getTime(),
             title: title,
             finished: false,
-            isPlanned: false
+            settingPlan: false, // 正在设置计划
+            confirmed: false, // 是否确认计划
+            text: '', // 详细内容
+            plan: {
+              selected: [],
+              everyDay: false,
+              indeterminate: false
+            }
           })
           // 添加新任务后选中的任务的索引会比原先大1
           this.selectedIndex++
