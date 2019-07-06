@@ -12,7 +12,7 @@
                 <div class="calendar-head-month-year-angle" @click="changeMonth(-1)">
                     <i class="fa fa-angle-left"></i>
                 </div>
-                <div class="calendar-head-month-year-date">{{ year+'年 '+month+'月' }}</div>
+                <div class="calendar-head-month-year-date">{{ year+' 年 '+month+' 月' }}</div>
                 <div class="calendar-head-month-year-angle" @click="changeMonth(1)">
                     <i class="fa fa-angle-right"></i>
                 </div>

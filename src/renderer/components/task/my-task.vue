@@ -17,7 +17,7 @@
                     </td>
                 </tr>
                 <tr class="task-item"
-                    v-for="(task,index) in taskList"
+                    v-for="(task,index) in unplannedComputedList"
                     @mouseenter="mouseoverTask(index)"
                     @mouseleave="mouseleaveTask()"
                     @click="clickTask(task, index)"
@@ -38,6 +38,8 @@
 </template>
 
 <script>
+  const task = require('../../util/common').task
+
   export default {
     name: 'my-task',
     data: function () {
@@ -60,19 +62,7 @@
       addOrCancel (add) {
         const title = this.newTaskTitle.trim()
         if (title.length > 0 && add) {
-          this.taskList.unshift({
-            id: new Date().getTime(),
-            title: title,
-            finished: false,
-            settingPlan: false, // 正在设置计划
-            confirmed: false, // 是否确认计划
-            text: '', // 详细内容
-            plan: {
-              selected: [],
-              everyDay: false,
-              indeterminate: false
-            }
-          })
+          this.taskList.unshift(task(title))
           // 添加新任务后选中的任务的索引会比原先大1
           this.selectedIndex++
         }
@@ -100,6 +90,13 @@
     mounted () {
       // 将数据和计划日程模块的数据绑定
       this.$parent.$refs.plannedTask.plannedTaskList = this.taskList
+    },
+    computed: {
+      unplannedComputedList: function () {
+        return this.taskList.filter(function (item) {
+          return !item.planned
+        })
+      }
     }
   }
 </script>
