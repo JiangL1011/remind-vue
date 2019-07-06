@@ -1,6 +1,6 @@
 <template>
     <div id="task-outline">
-        <div id="add-task">
+        <div id="add-task" v-if="!isPlannedList">
             <b-button @click="showAddTaskForm" block variant="primary" v-if="!allowAdd">添加任务</b-button>
             <b-button @click="addOrCancel(true)" block variant="primary" v-if="allowAdd">确认添加</b-button>
         </div>
@@ -17,7 +17,8 @@
                     </td>
                 </tr>
                 <tr class="task-item"
-                    v-for="(task,index) in unplannedComputedList"
+                    v-for="(task,index) in taskList"
+                    v-if="task.planned===isPlannedList"
                     @mouseenter="mouseoverTask(index)"
                     @mouseleave="mouseleaveTask()"
                     @click="clickTask(task, index)"
@@ -41,10 +42,10 @@
   const task = require('../../util/common').task
 
   export default {
-    name: 'my-task',
+    name: 'task-list',
+    props: ['isPlannedList', 'taskList'],
     data: function () {
       return {
-        taskList: [],
         allowAdd: false,
         newTaskTitle: '',
         selectedIndex: -1,
@@ -84,18 +85,7 @@
       clickTask (task, index) {
         this.selectedIndex = index
         // 将数据传递到detail模块
-        this.$parent.$parent.$refs.detail.task = this.taskList.length === 0 ? {} : task
-      }
-    },
-    mounted () {
-      // 将数据和计划日程模块的数据绑定
-      this.$parent.$refs.plannedTask.plannedTaskList = this.taskList
-    },
-    computed: {
-      unplannedComputedList: function () {
-        return this.taskList.filter(function (item) {
-          return !item.planned
-        })
+        this.$parent.$parent.$refs.detail.task = (this.taskList.length === 0 ? {} : task)
       }
     }
   }
