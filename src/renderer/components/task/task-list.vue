@@ -29,8 +29,10 @@
                     <td class="task-title">
                         <span :class="task.finished?'finished':''">{{ task.title }}</span>
                     </td>
-                    <td class="task-del-icon">
-                        <i class="fas fa-times" v-show="hoverIndex===index" @click="deleteTask(index)"></i>
+                    <td :class="isPlannedList?'':'task-del-icon'" style="width: 25px">
+                        <i class="fas fa-times"
+                           v-show="hoverIndex===index && !isPlannedList"
+                           @click="deleteTask(index)"></i>
                     </td>
                 </tr>
             </table>
@@ -40,6 +42,8 @@
 
 <script>
   const task = require('../../util/common').task
+  const db = require('../../db/remindDB')
+  const moment = require('moment')
 
   export default {
     name: 'task-list',
@@ -63,15 +67,47 @@
       addOrCancel (add) {
         const title = this.newTaskTitle.trim()
         if (title.length > 0 && add) {
-          this.taskList.unshift(task(title))
-          // 添加新任务后选中的任务的索引会比原先大1
-          this.selectedIndex++
+          const doc = task(title)
+          const that = this
+          db.insert(doc, function (err, newDoc) {
+            if (!err) {
+              that.taskList.unshift(newDoc)
+              // 添加新任务后选中的任务的索引会比原先大1
+              that.selectedIndex++
+            } else {
+              alert('新增失败，程序内部错误')
+            }
+          })
         }
         this.newTaskTitle = ''
         this.allowAdd = false
       },
       finishTask (task) {
-        task.finished = !task.finished
+        const finished = !task.finished
+        const r = confirm(finished ? '确定要完成任务吗？' : '确定要重新开启该任务吗？')
+        if (!r) return
+
+        task.finished = finished
+        task.settingPlan = false
+        task.finishTime = finished ? moment().format('YYYYMMDDHHmmss') : ''
+
+        if (this.isPlannedList) {
+          // 已计划的任务
+        } else {
+          // 未计划的任务
+          const id = task._id
+          db.update({
+            _id: id
+          }, {
+            $set: {
+              finished: task.finished,
+              finishTime: task.finishTime,
+              settingPlan: task.settingPlan
+            }
+          })
+          // 同时更新detail列表的数据
+          this.$parent.$parent.$refs.detail.task = task
+        }
       },
       deleteTask (index) {
         this.taskList.splice(index, 1)
@@ -85,7 +121,8 @@
       clickTask (task, index) {
         this.selectedIndex = index
         // 将数据传递到detail模块
-        this.$parent.$parent.$refs.detail.task = (this.taskList.length === 0 ? {} : task)
+        this.$parent.$parent.$refs.detail.taskId = (this.taskList.length === 0 ? '' : task._id)
+        this.$parent.$parent.$refs.detail.taskIndex = index
       }
     }
   }

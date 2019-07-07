@@ -31,12 +31,15 @@
         </div>
         <div id="calendar-task-panel" class="calendar-task">
             <p>{{ fromNow }}</p>
+            <div v-for="task in taskList">{{ task.title }}</div>
         </div>
     </div>
 </template>
 
 <script>
   import moment from 'moment'
+
+  const dbUtil = require('../db/dbUtil')
 
   moment.locale('zh-cn')
 
@@ -52,12 +55,19 @@
         realtime: moment().format('hh:mm:ss a'),
         realDate: moment().format('YYYY-MM-DD dddd'),
         selectedDate: moment().format('YYYYMMDD'),
-        fromNow: ''
+        fromNow: '',
+        taskList: []
       }
     },
     created: function () {
       this.initCalendar()
       this.initClock()
+    },
+    mounted () {
+      const that = this
+      dbUtil.listTasksByDate(this.selectedDate, true, function (data) {
+        that.taskList = data
+      })
     },
     methods: {
       initCalendar: function (year, month) {
@@ -130,6 +140,14 @@
           this.fromNow = moment(this.selectedDate + now, 'YYYYMMDDHHmmss').fromNow().replace('内', '后')
         }
         this.fromNow += '\xa0\xa0\xa0' + moment(this.selectedDate, 'YYYYMMDD').format('YYYY-MM-DD')
+      }
+    },
+    watch: {
+      selectedDate (newVal) {
+        const that = this
+        dbUtil.listTasksByDate(newVal, true, function (data) {
+          that.taskList = data
+        })
       }
     }
   }

@@ -1,8 +1,9 @@
 <template>
     <div id="app">
         <calendar></calendar>
-        <task></task>
-        <detail ref="detail"></detail>
+        <task ref="task"></task>
+        <detail ref="detail" v-if="detailTab===1"></detail>
+        <planned-detail ref="detail" v-else></planned-detail>
     </div>
 </template>
 
@@ -15,6 +16,7 @@
   import calendar from './components/calendar'
   import task from './components/task/task'
   import detail from './components/detail/detail'
+  import plannedDetail from './components/detail/planned-detail'
 
   Vue.use(BootstrapVue)
 
@@ -23,7 +25,13 @@
     components: {
       calendar,
       task,
-      detail
+      detail,
+      plannedDetail
+    },
+    data: function () {
+      return {
+        detailTab: 1
+      }
     },
     mounted () {
       resize()

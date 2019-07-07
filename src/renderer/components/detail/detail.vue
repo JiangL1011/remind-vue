@@ -2,10 +2,14 @@
     <div id="detail">
         <div v-if="Object.keys(task).length>0">
             <h2 :style="task.finished?'text-decoration-line: line-through;':''">{{ task.title }}</h2>
+            <h6>{{ '创建时间：'+ require('moment')(task.createTime,'YYYYMMDDHHmmss').format('YYYY-MM-DD HH:mm:ss') }}</h6>
+            <h6 v-if="task.finished">
+                {{ '完成时间：'+ require('moment')(task.finishTime,'YYYYMMDDHHmmss').format('YYYY-MM-DD HH:mm:ss') }}
+            </h6>
             <b-form-checkbox
                     v-model="task.settingPlan"
                     checked="false"
-                    :disabled="task.finished">
+                    v-if="!task.finished">
                 添加到计划日程
             </b-form-checkbox>
 
@@ -34,13 +38,13 @@
                     <template slot="label">
                         <b>设置计划时间:</b><br>
                         <b-form-checkbox
-                                v-model="task.plan.everyDay"
+                                v-model="task.plan.everyday"
                                 :indeterminate="task.plan.indeterminate"
                                 aria-describedby="plan.dayOfWeek"
                                 aria-controls="plan.dayOfWeek"
                                 @change="toggleAll"
                                 :disabled="task.finished">
-                            {{ task.plan.everyDay ? '每日计划' :
+                            {{ task.plan.everyday ? '每日计划' :
                             (task.plan.daysOfWeek.length===0?'勾选设为每日计划或选择具体时间设为周期计划':'周期计划') }}
                         </b-form-checkbox>
                     </template>
@@ -75,9 +79,17 @@
                         v-model="task.text"
                         placeholder="详细内容..."
                         rows="8"
+                        :disabled="task.finished"
                         style="margin-top: 10px;">
                 </b-form-textarea>
-                <b-button variant="primary" size="sm" style="display:block;margin:3px auto">保存任务详细内容</b-button>
+                <b-button variant="primary"
+                          size="sm"
+                          style="display:block;margin:3px auto"
+                          v-model="task.text"
+                          v-if="!task.finished"
+                          @click="editText">
+                    保存任务详细内容
+                </b-button>
             </b-form>
         </div>
     </div>
@@ -86,11 +98,14 @@
 <script>
   const plan = require('../../util/common').plan
   const moment = require('moment')
+  const db = require('../../db/remindDB')
 
   export default {
     name: 'detail',
     data: function () {
       return {
+        taskId: '',
+        taskIndex: 0,
         task: {},
         dayOfWeek: [
           {text: '周一', value: 1},
@@ -99,7 +114,7 @@
           {text: '周四', value: 4},
           {text: '周五', value: 5},
           {text: '周六', value: 6},
-          {text: '周日', value: 0}
+          {text: '周日', value: 7}
         ]
       }
     },
@@ -124,7 +139,22 @@
             if (parseInt(currDateTime) >= parseInt(selectDateTime)) {
               alert('不能选择过去的日期和时间')
             } else {
-              this.task.planned = true
+              const id = this.task._id
+              const date = this.task.plan.date
+              const time = this.task.plan.time
+              db.update({
+                _id: id
+              }, {
+                $set: {
+                  planned: true,
+                  'plan.type': 'once',
+                  'plan.date': date,
+                  'plan.time': time
+                }
+              })
+              // 添加为计划后从我的任务列表中删除
+              this.$parent.$refs.task.removeItem(this.taskIndex)
+              this.task = {}
             }
           }
         } else {
@@ -132,35 +162,83 @@
           if (this.task.plan.daysOfWeek.length === 0 || this.task.plan.time === '') {
             alert('计划周期和时间不可为空或填写错误')
           } else {
-            this.task.planned = true
+            const id = this.task._id
+            const daysOfWeek = this.task.plan.daysOfWeek
+            const time = this.task.plan.time
+            const indeterminate = this.task.plan.indeterminate
+            const everyday = this.task.plan.everyday
+            db.update({
+              _id: id
+            }, {
+              $set: {
+                planned: true,
+                'plan.type': 'repeat',
+                'plan.daysOfWeek': daysOfWeek.sort(),
+                'plan.time': time,
+                'plan.indeterminate': indeterminate,
+                'plan.everyday': everyday
+              }
+            })
+            // 添加为计划后从我的任务列表中删除
+            this.$parent.$refs.task.removeItem(this.taskIndex)
+            this.task = {}
           }
         }
+      },
+      editText () {
+        const that = this
+        db.update({
+          _id: that.task._id
+        }, {
+          $set: {
+            text: that.task.text
+          }
+        }, {}, function (err) {
+          if (!err) {
+            alert('保存成功')
+          } else {
+            alert('保存失败，程序内部错误')
+          }
+        })
       }
     },
     watch: {
-      task (newVal) {
-        if (newVal && Object.keys(newVal).length > 0) {
-          // 切换任务时清空原先未提交的计划表单并还原成计划任务未勾选状态
-          this.task.settingPlan = false
-          this.task.plan = plan()
-        }
+      taskId (newVal) {
+        const that = this
+        db.findOne({_id: newVal}, function (err, doc) {
+          if (!err) {
+            that.task = doc
+          } else {
+            alert('程序内部错误')
+          }
+        })
+      },
+      task (newVal, oldVal) {
+        db.update({
+          _id: oldVal._id
+        }, {
+          $set: {
+            settingPlan: oldVal.settingPlan,
+            plan: oldVal.plan
+          }
+        })
       },
       'task.plan.daysOfWeek' (newVal) {
         if (newVal) {
           if (newVal.length === 0) {
             this.task.plan.indeterminate = false
-            this.task.plan.everyDay = false
+            this.task.plan.everyday = false
           } else if (newVal.length === 7) {
             this.task.plan.indeterminate = false
-            this.task.plan.everyDay = true
+            this.task.plan.everyday = true
           } else {
             this.task.plan.indeterminate = true
-            this.task.plan.everyDay = false
+            this.task.plan.everyday = false
           }
         }
       },
       'task.settingPlan' (newVal) {
-        if (newVal) {
+        if (newVal !== undefined) {
           // 取消添加到日程后又再次选择添加到日程时清空上一次的选项
           if (!newVal) {
             this.task.plan = plan()
