@@ -1,9 +1,20 @@
 <template>
     <div id="detail">
         <div v-if="Object.keys(task).length>0">
-            <h2 :style="task.finished?'text-decoration-line: line-through;':''">{{ task.title }}</h2>
+            <h2 :style="task.plan.state[stateKey].finished?'text-decoration-line: line-through;':''">{{ task.title
+                }}</h2>
             <h6>{{ '创建时间：'+ require('moment')(task.createTime,'YYYYMMDDHHmmss').format('YYYY-MM-DD HH:mm:ss') }}</h6>
-            <b-button variant="danger" size="sm" @click="cancelPlan">取消计划</b-button>
+            <h6 v-if="task.plan.state[stateKey].finished">
+                {{'完成时间：'
+                + require('moment')(task.plan.state[stateKey].finishTime,'YYYYMMDDHHmmss')
+                .format('YYYY-MM-DD HH:mm:ss')}}
+            </h6>
+            <b-button variant="danger"
+                      size="sm"
+                      @click="cancelPlan"
+                      v-if="!task.plan.state[stateKey].finished">
+                取消计划
+            </b-button>
 
             <div style="margin: 3px 5px">
                 <div v-if="task.plan.type==='once'">
@@ -36,14 +47,16 @@
                         v-model="task.text"
                         placeholder="详细内容..."
                         rows="8"
-                        style="margin-top: 10px;">
+                        style="margin-top: 10px;"
+                        :readonly="task.plan.state[stateKey].finished">
                 </b-form-textarea>
 
                 <b-button variant="primary"
                           size="sm"
                           style="display:block;margin:3px auto"
                           v-model="task.text"
-                          @click="editText">
+                          @click="editText"
+                          v-if="!task.plan.state[stateKey].finished">
                     保存任务详细内容
                 </b-button>
             </b-form>
@@ -63,6 +76,7 @@
         taskId: '',
         taskIndex: 0,
         task: {},
+        stateKey: '',
         daysOfWeek: [
           '周一',
           '周二',

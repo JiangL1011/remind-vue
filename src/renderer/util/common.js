@@ -13,6 +13,14 @@ const plan = function () {
   }
 }
 
+const stateDetail = function (finished = false, expired = false, finishTime = '') {
+  return {
+    finished: finished,
+    expired: expired,
+    finishTime: finishTime
+  }
+}
+
 module.exports = {
   task: function (title) {
     return {
@@ -20,7 +28,6 @@ module.exports = {
       finishTime: '',
       title: title,
       finished: false, // 未设为计划任务的完成状态
-      expired: false, // 未设为计划任务的过期状态
       settingPlan: false, // 正在设置计划
       planned: false, // 该任务是否被设置为计划日程
       text: '', // 详细内容
@@ -31,5 +38,8 @@ module.exports = {
   },
   plan: function () {
     return plan()
+  },
+  stateDetail: function (finished, expired, finishTime) {
+    return stateDetail(finished, expired, finishTime)
   }
 }

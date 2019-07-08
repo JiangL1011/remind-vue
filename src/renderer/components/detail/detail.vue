@@ -96,7 +96,7 @@
 </template>
 
 <script>
-  const plan = require('../../util/common').plan
+  const common = require('../../util/common')
   const moment = require('moment')
   const db = require('../../db/remindDB')
 
@@ -128,6 +128,10 @@
         }
       },
       addToPlan () {
+        const stateKey = moment().format('YYYYMMDD')
+        if (!this.task.plan.state[stateKey]) {
+          this.task.plan.state[stateKey] = common.stateDetail()
+        }
         if (this.task.plan.type === 'once') {
           // 单次计划
           if (this.task.plan.date === '' || this.task.plan.time === '') {
@@ -241,14 +245,14 @@
         if (newVal !== undefined) {
           // 取消添加到日程后又再次选择添加到日程时清空上一次的选项
           if (!newVal) {
-            this.task.plan = plan()
+            this.task.plan = common.plan()
           }
         }
       },
       'task.plan.type' (newVal) {
         if (newVal) {
           // 切换类型时初始化数据
-          this.task.plan = plan()
+          this.task.plan = common.plan()
           this.task.plan.type = newVal
         }
       }

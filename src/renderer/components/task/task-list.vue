@@ -23,17 +23,28 @@
                     @mouseleave="mouseleaveTask()"
                     @click="clickTask(task, index)"
                     :style="selectedIndex===index?'background:#e8eef7':''">
-                    <td class="task-check-icon" @click="finishTask(task)">
-                        <i class="fa fa-check" v-show="task.finished||hoverIndex===index"></i>
-                    </td>
-                    <td class="task-title">
-                        <span :class="task.finished?'finished':''">{{ task.title }}</span>
-                    </td>
-                    <td :class="isPlannedList?'':'task-del-icon'" style="width: 25px">
-                        <i class="fas fa-times"
-                           v-show="hoverIndex===index && !isPlannedList"
-                           @click="deleteTask(index)"></i>
-                    </td>
+                    <template v-if="!isPlannedList">
+                        <td class="task-check-icon" @click="switchFinish(task)">
+                            <i class="fa fa-check" v-show="task.finished||hoverIndex===index"></i>
+                        </td>
+                        <td class="task-title">
+                            <span :class="task.finished?'finished':''">{{ task.title }}</span>
+                        </td>
+                        <td :class="isPlannedList?'':'task-del-icon'">
+                            <i class="fas fa-times"
+                               v-show="hoverIndex===index && !isPlannedList"
+                               @click="deleteTask(index)"></i>
+                        </td>
+                    </template>
+                    <template v-else>
+                        <td class="task-check-icon" @click="switchFinish(task)">
+                            <i class="fa fa-check" v-show="task.plan.state[stateKey].finished||hoverIndex===index"></i>
+                        </td>
+                        <td class="task-title">
+                            <span :class="task.plan.state[stateKey].finished?'finished':''">{{ task.title }}</span>
+                        </td>
+                        <td style="width: 25px"></td>
+                    </template>
                 </tr>
             </table>
         </div>
@@ -41,7 +52,7 @@
 </template>
 
 <script>
-  const task = require('../../util/common').task
+  const common = require('../../util/common')
   const db = require('../../db/remindDB')
   const moment = require('moment')
 
@@ -53,7 +64,8 @@
         allowAdd: false,
         newTaskTitle: '',
         selectedIndex: -1,
-        hoverIndex: -1
+        hoverIndex: -1,
+        stateKey: ''
       }
     },
     methods: {
@@ -67,7 +79,7 @@
       addOrCancel (add) {
         const title = this.newTaskTitle.trim()
         if (title.length > 0 && add) {
-          const doc = task(title)
+          const doc = common.task(title)
           const that = this
           db.insert(doc, function (err, newDoc) {
             if (!err) {
@@ -82,20 +94,40 @@
         this.newTaskTitle = ''
         this.allowAdd = false
       },
-      finishTask (task) {
-        const finished = !task.finished
-        const r = confirm(finished ? '确定要完成任务吗？' : '确定要重新开启该任务吗？')
-        if (!r) return
-
-        task.finished = finished
-        task.settingPlan = false
-        task.finishTime = finished ? moment().format('YYYYMMDDHHmmss') : ''
-
+      switchFinish (task) {
+        const id = task._id
+        const date = this.stateKey
         if (this.isPlannedList) {
           // 已计划的任务
+          const finished = !task.plan.state[date].finished
+          const r = confirm(finished ? '确定要完成任务吗？' : '确定要重新开启该任务吗？')
+          if (!r) return
+          // 当前时间
+          const time = moment().format('HHmmss')
+          const stateDetail = common.stateDetail(
+            finished,
+            // 由于该页面只会展示当天的任务，所以只需判断时间即可确定任务是否超时
+            parseInt(time) > parseInt(moment(task.plan.time, 'HH:mm').format('HHmmss')),
+            date + time
+          )
+          task.plan.state[date] = stateDetail
+          db.update({
+            _id: id
+          }, {
+            $set: {
+              ['plan.state.' + date]: stateDetail
+            }
+          })
+          // 同时更新detail列表的stateKey，便于planned-detail中直接获取state内容
+          this.$parent.$parent.$refs.detail.stateKey = date
         } else {
           // 未计划的任务
-          const id = task._id
+          const finished = !task.finished
+          const r = confirm(finished ? '确定要完成任务吗？' : '确定要重新开启该任务吗？')
+          if (!r) return
+          task.settingPlan = false
+          task.finished = finished
+          task.finishTime = finished ? moment().format('YYYYMMDDHHmmss') : ''
           db.update({
             _id: id
           }, {
@@ -105,9 +137,9 @@
               settingPlan: task.settingPlan
             }
           })
-          // 同时更新detail列表的数据
-          this.$parent.$parent.$refs.detail.task = task
         }
+        // 同时更新detail列表的数据
+        this.$parent.$parent.$refs.detail.task = task
       },
       deleteTask (index) {
         this.taskList.splice(index, 1)
@@ -123,7 +155,12 @@
         // 将数据传递到detail模块
         this.$parent.$parent.$refs.detail.taskId = (this.taskList.length === 0 ? '' : task._id)
         this.$parent.$parent.$refs.detail.taskIndex = index
+        this.$parent.$parent.$refs.detail.stateKey = moment().format('YYYYMMDD')
       }
+    },
+    mounted () {
+      // 当前日期 作为stateDetail在state中的key
+      this.stateKey = moment().format('YYYYMMDD')
     }
   }
 </script>
