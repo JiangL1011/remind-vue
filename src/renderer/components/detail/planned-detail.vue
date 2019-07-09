@@ -1,6 +1,6 @@
 <template>
     <div id="detail">
-        <div v-if="Object.keys(task).length>0">
+        <template v-if="task">
             <h2 :style="task.plan.state[stateKey].finished?'text-decoration-line: line-through;':''">{{ task.title
                 }}</h2>
             <h6>{{ '创建时间：'+ require('moment')(task.createTime,'YYYYMMDDHHmmss').format('YYYY-MM-DD HH:mm:ss') }}</h6>
@@ -60,12 +60,11 @@
                     保存任务详细内容
                 </b-button>
             </b-form>
-        </div>
+        </template>
     </div>
 </template>
 
 <script>
-  const moment = require('moment')
   const db = require('../../db/remindDB')
   const common = require('../../util/common')
 
@@ -75,7 +74,7 @@
       return {
         taskId: '',
         taskIndex: 0,
-        task: {},
+        task: null,
         stateKey: '',
         daysOfWeek: [
           '周一',
@@ -89,68 +88,6 @@
       }
     },
     methods: {
-      toggleAll (checked) {
-        this.task.plan.daysOfWeek = []
-        if (checked) {
-          for (const day of this.dayOfWeek) {
-            this.task.plan.daysOfWeek.push(day.value)
-          }
-        }
-      },
-      addToPlan () {
-        if (this.task.plan.type === 'once') {
-          // 单次计划
-          if (this.task.plan.date === '' || this.task.plan.time === '') {
-            alert('日期和时间不可为空或填写错误')
-          } else {
-            const selectDateTime =
-              moment(this.task.plan.date + ' ' + this.task.plan.time, 'YYYY-MM-DD HH:mm').format('YYYYMMDDHHmm')
-            const currDateTime = moment().format('YYYYMMDDHHmm')
-            if (parseInt(currDateTime) >= parseInt(selectDateTime)) {
-              alert('不能选择过去的日期和时间')
-            } else {
-              const id = this.task._id
-              const date = this.task.plan.date
-              const time = this.task.plan.time
-              db.update({
-                _id: id
-              }, {
-                $set: {
-                  planned: true,
-                  'plan.type': 'once',
-                  'plan.date': date,
-                  'plan.time': time
-                }
-              })
-              this.task = {}
-            }
-          }
-        } else {
-          // 周期计划
-          if (this.task.plan.daysOfWeek.length === 0 || this.task.plan.time === '') {
-            alert('计划周期和时间不可为空或填写错误')
-          } else {
-            const id = this.task._id
-            const daysOfWeek = this.task.plan.daysOfWeek
-            const time = this.task.plan.time
-            const indeterminate = this.task.plan.indeterminate
-            const everyday = this.task.plan.everyday
-            db.update({
-              _id: id
-            }, {
-              $set: {
-                planned: true,
-                'plan.type': 'repeat',
-                'plan.daysOfWeek': daysOfWeek,
-                'plan.time': time,
-                'plan.indeterminate': indeterminate,
-                'plan.everyday': everyday
-              }
-            })
-            this.task = {}
-          }
-        }
-      },
       editText () {
         const that = this
         db.update({
@@ -182,7 +119,7 @@
           }, newTask)
           // 取消计划后从我的任务列表中删除
           this.$parent.$refs.task.removeItem(this.taskIndex)
-          this.task = {}
+          this.task = null
         }
       }
     },
@@ -207,11 +144,5 @@
         min-width: 200px;
         flex-grow: 1;
         word-wrap: break-word;
-    }
-
-    .b-row {
-        display: flex;
-        flex-wrap: nowrap;
-        align-items: center;
     }
 </style>

@@ -44,7 +44,7 @@
       tab (newVal) {
         // 切换tab清空详情栏的内容
         this.$parent.$refs.detail.taskId = ''
-        this.$parent.$refs.detail.task = {}
+        this.$parent.$refs.detail.task = null
         this.$parent.detailTab = newVal
         this.loadData(newVal)
       }

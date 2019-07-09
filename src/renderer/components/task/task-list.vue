@@ -33,7 +33,7 @@
                         <td :class="isPlannedList?'':'task-del-icon'">
                             <i class="fas fa-times"
                                v-show="hoverIndex===index && !isPlannedList"
-                               @click="deleteTask(index)"></i>
+                               @click="deleteTask(task._id, index)"></i>
                         </td>
                     </template>
                     <template v-else>
@@ -141,8 +141,15 @@
         // 同时更新detail列表的数据
         this.$parent.$parent.$refs.detail.task = task
       },
-      deleteTask (index) {
+      deleteTask (id, index) {
+        const r = confirm('确定要删除这条任务么？')
+        if (!r) return
+        db.remove({_id: id})
         this.taskList.splice(index, 1)
+        // 删除的如果是最后一条任务则清空detail页面内容
+        if (this.taskList.length === index) {
+          this.$parent.$parent.$refs.detail.task = null
+        }
       },
       mouseoverTask (index) {
         this.hoverIndex = index
@@ -153,7 +160,13 @@
       clickTask (task, index) {
         this.selectedIndex = index
         // 将数据传递到detail模块
-        this.$parent.$parent.$refs.detail.taskId = (this.taskList.length === 0 ? '' : task._id)
+        if (this.taskList.length === 0) {
+          // 删除最后一条数据的时候也会出发click事件
+          this.$parent.$parent.$refs.detail.taskId = ''
+          this.$parent.$parent.$refs.detail.task = null
+        } else {
+          this.$parent.$parent.$refs.detail.taskId = task._id
+        }
         this.$parent.$parent.$refs.detail.taskIndex = index
         this.$parent.$parent.$refs.detail.stateKey = moment().format('YYYYMMDD')
       }

@@ -1,6 +1,6 @@
 <template>
     <div id="detail">
-        <div v-if="Object.keys(task).length>0">
+        <template v-if="task">
             <h2 :style="task.finished?'text-decoration-line: line-through;':''">{{ task.title }}</h2>
             <h6>{{ '创建时间：'+ require('moment')(task.createTime,'YYYYMMDDHHmmss').format('YYYY-MM-DD HH:mm:ss') }}</h6>
             <h6 v-if="task.finished">
@@ -91,7 +91,7 @@
                     保存任务详细内容
                 </b-button>
             </b-form>
-        </div>
+        </template>
     </div>
 </template>
 
@@ -106,7 +106,7 @@
       return {
         taskId: '',
         taskIndex: 0,
-        task: {},
+        task: null,
         dayOfWeek: [
           {text: '周一', value: 1},
           {text: '周二', value: 2},
@@ -158,7 +158,7 @@
               })
               // 添加为计划后从我的任务列表中删除
               this.$parent.$refs.task.removeItem(this.taskIndex)
-              this.task = {}
+              this.task = null
             }
           }
         } else {
@@ -185,7 +185,7 @@
             })
             // 添加为计划后从我的任务列表中删除
             this.$parent.$refs.task.removeItem(this.taskIndex)
-            this.task = {}
+            this.task = null
           }
         }
       },
@@ -218,14 +218,17 @@
         })
       },
       task (newVal, oldVal) {
-        db.update({
-          _id: oldVal._id
-        }, {
-          $set: {
-            settingPlan: oldVal.settingPlan,
-            plan: oldVal.plan
-          }
-        })
+        // 保存正在编辑的数据
+        if (oldVal) {
+          db.update({
+            _id: oldVal._id
+          }, {
+            $set: {
+              settingPlan: oldVal.settingPlan,
+              plan: oldVal.plan
+            }
+          })
+        }
       },
       'task.plan.daysOfWeek' (newVal) {
         if (newVal) {

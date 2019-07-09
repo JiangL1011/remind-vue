@@ -29,9 +29,11 @@
                 <span v-bind:class="day.dayType">{{ day.dayOfMonth }}</span>
             </div>
         </div>
-        <div id="calendar-task-panel" class="calendar-task">
+        <div id="calendar-task-panel" class="calendar-task" style="overflow-y: auto">
             <p>{{ fromNow }}</p>
-            <div v-for="task in taskList">{{ task.title }}</div>
+            <b-list-group>
+                <b-list-group-item button v-for="task in taskList">{{ task.title }}</b-list-group-item>
+            </b-list-group>
         </div>
     </div>
 </template>
