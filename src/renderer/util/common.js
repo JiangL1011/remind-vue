@@ -13,7 +13,7 @@ const plan = function () {
   }
 }
 
-const stateDetail = function (finished = false, expired = false, finishTime = '') {
+const stateDetail = function (finished, expired, finishTime) {
   return {
     finished: finished,
     expired: expired,
@@ -39,7 +39,7 @@ module.exports = {
   plan: function () {
     return plan()
   },
-  stateDetail: function (finished, expired, finishTime) {
+  stateDetail: function (finished = false, expired = false, finishTime = '') {
     return stateDetail(finished, expired, finishTime)
   }
 }

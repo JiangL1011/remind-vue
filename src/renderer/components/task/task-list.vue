@@ -120,6 +120,13 @@
           })
           // 同时更新detail列表的stateKey，便于planned-detail中直接获取state内容
           this.$parent.$parent.$refs.detail.stateKey = date
+          // 同时更新日历列表中的数据
+          const calendarTaskList = this.$parent.$parent.$refs.calendar.taskList
+          for (let i = 0; i < calendarTaskList.length; i++) {
+            if (calendarTaskList[i]._id === task._id) {
+              this.$parent.$parent.$refs.calendar.taskList[i].plan.state[date].finished = finished
+            }
+          }
         } else {
           // 未计划的任务
           const finished = !task.finished

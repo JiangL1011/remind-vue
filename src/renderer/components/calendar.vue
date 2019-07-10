@@ -29,11 +29,57 @@
                 <span v-bind:class="day.dayType">{{ day.dayOfMonth }}</span>
             </div>
         </div>
-        <div id="calendar-task-panel" class="calendar-task" style="overflow-y: auto">
-            <p>{{ fromNow }}</p>
-            <b-list-group>
-                <b-list-group-item button v-for="task in taskList">{{ task.title }}</b-list-group-item>
-            </b-list-group>
+        <div id="calendar-task-panel" class="calendar-task"
+             style="overflow-y: auto;overflow-x:hidden;padding: 4px 0;word-wrap: break-word">
+            <h6 style="margin-left: 4px">{{ fromNow }}</h6>
+            <div id="demo" v-for="task in taskList">
+                <div id="task-profile">
+                    <div id="task-profile-title"
+                         v-on:click="showTaskId=(showTaskId===task._id?'':task._id)"
+                         @mouseenter="hoverId=task._id"
+                         @mouseleave="hoverId=''"
+                         style="cursor: pointer;display: flex;flex-wrap: nowrap">
+                        <div style="width: 15px;font-size: 12px" @click="switchFinish(task)">
+                            <i class="fa fa-check"
+                               v-show="hoverId===task._id||(task.plan.state[selectedDate]&&task.plan.state[selectedDate].finished)"
+                               style="color: #00b400">
+                            </i>
+                        </div>
+                        <div>
+                            <b :style="(task.plan.state[selectedDate]&&task.plan.state[selectedDate].finished)
+                                ?'text-decoration-line: line-through;':''">
+                                {{ task.title }}
+                            </b>
+                        </div>
+                    </div>
+                    <div id="task-profile-detail" style="padding: 0 4px;" v-if="showTaskId===task._id">
+                        <div>
+                            创建时间：
+                            {{ require('moment')(task.createTime, 'YYYYMMDDHHmmss').format('YYYY-MM-DD HH:mm:ss') }}
+                        </div>
+                        <div v-if="task.plan.state[selectedDate]&&task.plan.state[selectedDate].finished">
+                            完成时间：
+                            {{ require('moment')(task.plan.state[selectedDate].finishTime,'YYYYMMDDHHmmss')
+                            .format('YYYY-MM-DD HH:mm:ss') }}
+                        </div>
+                        <div v-if="task.plan.type==='once'">
+                            计划日期：{{ task.plan.date }}
+                        </div>
+                        <div v-else>
+                            计划周期：
+                            <span v-if="task.plan.daysOfWeek.length===7">每天</span>
+                            <span v-else v-for="i in task.plan.daysOfWeek">{{ week[i===7?0:i]+' ' }}</span>
+                        </div>
+                        <div>
+                            计划时间： {{ task.plan.time }}
+                        </div>
+                        <div>
+                            <div>计划内容：</div>
+                            {{ task.text }}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -42,6 +88,8 @@
   import moment from 'moment'
 
   const dbUtil = require('../db/dbUtil')
+  const common = require('../util/common')
+  const db = require('../db/remindDB')
 
   moment.locale('zh-cn')
 
@@ -49,6 +97,8 @@
     name: 'calendar',
     data: function () {
       return {
+        showTaskId: '',
+        hoverId: '',
         year: '',
         month: '',
         week: ['日', '一', '二', '三', '四', '五', '六'],
@@ -142,6 +192,48 @@
           this.fromNow = moment(this.selectedDate + now, 'YYYYMMDDHHmmss').fromNow().replace('内', '后')
         }
         this.fromNow += '\xa0\xa0\xa0' + moment(this.selectedDate, 'YYYYMMDD').format('YYYY-MM-DD')
+      },
+      switchFinish: function (task) {
+        const id = task._id
+        const date = this.selectedDate
+        if (!task.plan.state[date]) {
+          task.plan.state[date] = common.stateDetail()
+        }
+        const finished = !task.plan.state[date].finished
+        const r = confirm(finished ? '确定要完成任务吗？' : '确定要重新开启该任务吗？')
+        if (!r) return
+        // 当前时间
+        const time = moment().format('HHmmss')
+        const now = moment().format('YYYYMMDDHHmmss')
+        const deadLine = moment(date + task.plan.time, 'YYYYMMDDHH:mm').format('YYYYMMDDHHmmss')
+        const stateDetail = common.stateDetail(
+          finished,
+          parseInt(now) > parseInt(deadLine),
+          date + time
+        )
+        task.plan.state[date] = stateDetail
+        db.update({
+          _id: id
+        }, {
+          $set: {
+            ['plan.state.' + date]: stateDetail
+          }
+        })
+        // 同时更新detail列表的stateKey，便于planned-detail中直接获取state内容
+        this.$parent.$refs.detail.stateKey = date
+        // 同时更新detail列表的数据
+        const detailTask = this.$parent.$refs.detail.task
+        if (detailTask && detailTask._id === task._id) {
+          this.$parent.$refs.detail.task = task
+        }
+        // 更新主列表界面的数据
+        const taskList = this.$parent.$refs.task.taskList
+        for (let i = 0; i < taskList.length; i++) {
+          if (taskList[i]._id === task._id) {
+            taskList[i].plan.state[date].finished = finished
+            break
+          }
+        }
       }
     },
     watch: {
@@ -251,6 +343,23 @@
 
     .calendar-task {
         border-top: 1px solid #B2D5DF;
+    }
+
+    #task-profile {
+        border-bottom: 1px solid #B2D5DF;
+        line-height: 32px;
+        word-wrap: break-word;
+        cursor: default;
+        padding: 0 4px;
+    }
+
+    #task-profile-title:hover {
+        background: #e8eef7;
+    }
+
+    #task-profile-detail {
+        line-height: 17px;
+        font-size: 13px;
     }
 
 </style>

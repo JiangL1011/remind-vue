@@ -1,6 +1,6 @@
 <template>
     <div id="app">
-        <calendar></calendar>
+        <calendar ref="calendar"></calendar>
         <task ref="task"></task>
         <detail ref="detail" v-if="detailTab===1"></detail>
         <planned-detail ref="detail" v-else></planned-detail>
