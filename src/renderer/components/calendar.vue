@@ -34,7 +34,7 @@
             <div style="height: 28px">
                 <h6 style="margin-left: 4px;float: left">{{ fromNow }}</h6>
                 <b-badge variant="danger"
-                         v-show="showTaskIndex!==-1"
+                         v-show="showTaskIndex!==-1&&taskList.length!==0"
                          @click="cancelPlan"
                          style="float: right;margin-right: 5px;cursor: pointer">取消计划
                 </b-badge>
