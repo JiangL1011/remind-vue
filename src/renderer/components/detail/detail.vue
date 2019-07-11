@@ -188,6 +188,7 @@
             this.task = null
           }
         }
+        this.$parent.$refs.calendar.getTaskList()
       },
       editText () {
         const that = this

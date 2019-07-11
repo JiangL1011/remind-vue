@@ -116,10 +116,7 @@
       this.initClock()
     },
     mounted () {
-      const that = this
-      dbUtil.listTasksByDate(this.selectedDate, true, function (data) {
-        that.taskList = data
-      })
+      this.getTaskList()
     },
     methods: {
       initCalendar: function (year, month) {
@@ -234,14 +231,17 @@
             break
           }
         }
+      },
+      getTaskList: function (date = this.selectedDate) {
+        const that = this
+        dbUtil.listTasksByDate(date, true, function (data) {
+          that.taskList = data
+        })
       }
     },
     watch: {
       selectedDate (newVal) {
-        const that = this
-        dbUtil.listTasksByDate(newVal, true, function (data) {
-          that.taskList = data
-        })
+        this.getTaskList(newVal)
       }
     }
   }
