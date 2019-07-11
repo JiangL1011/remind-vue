@@ -31,11 +31,18 @@
         </div>
         <div id="calendar-task-panel" class="calendar-task"
              style="overflow-y: auto;overflow-x:hidden;padding: 4px 0;word-wrap: break-word">
-            <h6 style="margin-left: 4px">{{ fromNow }}</h6>
-            <div id="demo" v-for="task in taskList">
+            <div style="height: 28px">
+                <h6 style="margin-left: 4px;float: left">{{ fromNow }}</h6>
+                <b-badge variant="danger"
+                         v-show="showTaskIndex!==-1"
+                         @click="cancelPlan"
+                         style="float: right;margin-right: 5px;cursor: pointer">取消计划
+                </b-badge>
+            </div>
+            <div id="demo" v-for="(task, index) in taskList">
                 <div id="task-profile">
                     <div id="task-profile-title"
-                         v-on:click="showTaskId=(showTaskId===task._id?'':task._id)"
+                         v-on:click="showTaskIndex=(showTaskIndex===index?-1:index)"
                          @mouseenter="hoverId=task._id"
                          @mouseleave="hoverId=''"
                          style="cursor: pointer;display: flex;flex-wrap: nowrap">
@@ -52,10 +59,14 @@
                             </b>
                         </div>
                     </div>
-                    <div id="task-profile-detail" style="padding: 0 4px;" v-if="showTaskId===task._id">
+                    <div id="task-profile-detail" style="padding: 0 4px;" v-if="showTaskIndex===index">
                         <div>
                             创建时间：
                             {{ require('moment')(task.createTime, 'YYYYMMDDHHmmss').format('YYYY-MM-DD HH:mm:ss') }}
+                        </div>
+                        <div v-if="task.plan.finished">
+                            计划结束：
+                            {{ require('moment')(task.plan.finishDate, 'YYYYMMDD').format('YYYY-MM-DD') }}
                         </div>
                         <div v-if="task.plan.state[selectedDate]&&task.plan.state[selectedDate].finished">
                             完成时间：
@@ -97,7 +108,7 @@
     name: 'calendar',
     data: function () {
       return {
-        showTaskId: '',
+        showTaskIndex: -1,
         hoverId: '',
         year: '',
         month: '',
@@ -237,6 +248,34 @@
         dbUtil.listTasksByDate(date, true, function (data) {
           that.taskList = data
         })
+      },
+      cancelPlan () {
+        const that = this
+        const canceledTask = this.taskList[this.showTaskIndex]
+        const cp = this.$parent.$refs.detail.cancelPlan
+        if (typeof cp === 'function') {
+          cp(canceledTask)
+        } else {
+          const r = confirm('取消后该计划会回到‘我的任务’列表并清空该计划的所有记录。' +
+            '确定要取消标题为“' + canceledTask.title + '”的计划么？')
+          if (r) {
+            const id = canceledTask._id
+            const createTime = canceledTask.createTime
+            const title = canceledTask.title
+            const text = canceledTask.text
+            const newTask = common.task(title)
+            newTask.text = text
+            newTask.createTime = createTime
+            db.update({
+              _id: id
+            }, newTask, {}, function (err) {
+              if (!err) {
+                that.getTaskList()
+                that.$parent.$refs.task.loadData()
+              }
+            })
+          }
+        }
       }
     },
     watch: {
@@ -280,7 +319,7 @@
     }
 
     .calendar-head, .calendar-realtime {
-        background: #3361ff;
+        background: rgba(0, 115, 255, 0.89);
         color: white;
     }
 
@@ -309,7 +348,7 @@
         border-radius: 20px;
     }
 
-    .calendar-body-day:hover {
+    .calendar-body-day:not(.today):hover {
         background: #eee6ee;
     }
 
@@ -332,13 +371,13 @@
     }
 
     .today {
-        border-color: #3361ff;
+        border-color: rgba(0, 115, 255, 0.89);
         color: white;
-        background: #3361ff;
+        background: rgba(0, 115, 255, 0.89);
     }
 
     .selected-day {
-        border-color: #3361ff;
+        border-color: rgba(0, 115, 255, 0.89);
     }
 
     .calendar-task {

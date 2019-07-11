@@ -106,19 +106,22 @@
           }
         }, {}, function (err) {
           if (!err) {
+            that.reloadCalendarTaskList()
             alert('保存成功')
           } else {
             alert('保存失败，程序内部错误')
           }
         })
       },
-      cancelPlan () {
-        const r = confirm('取消后该计划会回到‘我的任务’列表并清空该计划的所有记录。确定要取消计划么？')
+      cancelPlan (task) {
+        const canceledTask = (task || (this.task))
+        const r = confirm('取消后该计划会回到‘我的任务’列表并清空该计划的所有记录。' +
+          '确定要取消标题为“' + canceledTask.title + '”的计划么？')
         if (r) {
-          const id = this.task._id
-          const createTime = this.task.createTime
-          const title = this.task.title
-          const text = this.task.text
+          const id = canceledTask._id
+          const createTime = canceledTask.createTime
+          const title = canceledTask.title
+          const text = canceledTask.text
           const newTask = common.task(title)
           newTask.text = text
           newTask.createTime = createTime
