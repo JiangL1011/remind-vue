@@ -14,7 +14,14 @@ export const listTasksByDate = function (date, planned, callback) {
       // 筛选出指定日期的任务
       for (const sortedDoc of sortedDocs) {
         const createDate = parseInt(sortedDoc.createTime.substr(0, 8))
+        const planFinished = sortedDoc.plan.finished
+        const finishDate = sortedDoc.plan.finishDate
+        // 早于创建时间的任务不显示
         if (parseInt(date) < createDate) {
+          continue
+        }
+        // 已经结束的并且结束时间在选择时间之前的任务不显示
+        if (planFinished && (parseInt(date) > parseInt(finishDate))) {
           continue
         }
         if (sortedDoc.plan.everyday) {

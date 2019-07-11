@@ -97,9 +97,10 @@
       switchFinish (task) {
         const id = task._id
         const date = this.stateKey
+        let finished
         if (this.isPlannedList) {
           // 已计划的任务
-          const finished = !task.plan.state[date].finished
+          finished = !task.plan.state[date].finished
           const r = confirm(finished ? '确定要完成任务吗？' : '确定要重新开启该任务吗？')
           if (!r) return
           // 当前时间
@@ -120,16 +121,9 @@
           })
           // 同时更新detail列表的stateKey，便于planned-detail中直接获取state内容
           this.$parent.$parent.$refs.detail.stateKey = date
-          // 同时更新日历列表中的数据
-          const calendarTaskList = this.$parent.$parent.$refs.calendar.taskList
-          for (let i = 0; i < calendarTaskList.length; i++) {
-            if (calendarTaskList[i]._id === task._id) {
-              this.$parent.$parent.$refs.calendar.taskList[i].plan.state[date].finished = finished
-            }
-          }
         } else {
           // 未计划的任务
-          const finished = !task.finished
+          finished = !task.finished
           const r = confirm(finished ? '确定要完成任务吗？' : '确定要重新开启该任务吗？')
           if (!r) return
           task.settingPlan = false
@@ -147,6 +141,13 @@
         }
         // 同时更新detail列表的数据
         this.$parent.$parent.$refs.detail.task = task
+        // 同时更新日历列表中的数据
+        const calendarTaskList = this.$parent.$parent.$refs.calendar.taskList
+        for (let i = 0; i < calendarTaskList.length; i++) {
+          if (calendarTaskList[i]._id === task._id) {
+            this.$parent.$parent.$refs.calendar.taskList[i].plan.state[date].finished = finished
+          }
+        }
       },
       deleteTask (id, index) {
         const r = confirm('确定要删除这条任务么？')

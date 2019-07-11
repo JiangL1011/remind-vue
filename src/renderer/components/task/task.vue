@@ -2,7 +2,7 @@
     <div id="task">
         <b-nav tabs fill>
             <b-nav-item @click="tab=1" :active="tab===1">我的任务</b-nav-item>
-            <b-nav-item @click="tab=2" :active="tab===2">今日任务</b-nav-item>
+            <b-nav-item @click="tab=2" :active="tab===2">今日计划</b-nav-item>
         </b-nav>
         <task-list v-show="tab===1" :isPlannedList="false" :task-list="taskList"></task-list>
         <task-list v-show="tab===2" :isPlannedList="true" :task-list="taskList"></task-list>

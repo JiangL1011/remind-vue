@@ -16,6 +16,13 @@
                 取消计划
             </b-button>
 
+            <b-button variant="warning"
+                      size="sm"
+                      @click="finishPlan"
+                      v-if="task.plan.type==='repeat'">
+                {{ task.plan.finished?'计划已结束':'结束周期计划' }}
+            </b-button>
+
             <div style="margin: 3px 5px">
                 <div v-if="task.plan.type==='once'">
                     <b>计划日期：</b>
@@ -67,6 +74,7 @@
 <script>
   const db = require('../../db/remindDB')
   const common = require('../../util/common')
+  const moment = require('moment')
 
   export default {
     name: 'detail',
@@ -105,7 +113,7 @@
         })
       },
       cancelPlan () {
-        const r = confirm('取消后该计划会回到‘我的任务’列表。确定要取消计划么？')
+        const r = confirm('取消后该计划会回到‘我的任务’列表并清空该计划的所有记录。确定要取消计划么？')
         if (r) {
           const id = this.task._id
           const createTime = this.task.createTime
@@ -120,7 +128,28 @@
           // 取消计划后从我的任务列表中删除
           this.$parent.$refs.task.removeItem(this.taskIndex)
           this.task = null
+          this.reloadCalendarTaskList()
         }
+      },
+      finishPlan () {
+        const finished = this.task.plan.finished
+        const r = confirm(finished ? '是否重新开启计划？' : '结束计划后，只能在今天重新开启，是否确定结束？')
+        if (r) {
+          this.task.plan.finished = !finished
+        }
+        const id = this.task._id
+        db.update({
+          _id: id
+        }, {
+          $set: {
+            'plan.finished': !finished,
+            'plan.finishDate': moment().format('YYYYMMDD')
+          }
+        })
+        this.reloadCalendarTaskList()
+      },
+      reloadCalendarTaskList () {
+        this.$parent.$refs.calendar.getTaskList()
       }
     },
     watch: {

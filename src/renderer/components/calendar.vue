@@ -39,7 +39,7 @@
                          @mouseenter="hoverId=task._id"
                          @mouseleave="hoverId=''"
                          style="cursor: pointer;display: flex;flex-wrap: nowrap">
-                        <div style="width: 15px;font-size: 12px" @click="switchFinish(task)">
+                        <div style="width: 15px;font-size: 12px;margin-left: 4px" @click="switchFinish(task)">
                             <i class="fa fa-check"
                                v-show="hoverId===task._id||(task.plan.state[selectedDate]&&task.plan.state[selectedDate].finished)"
                                style="color: #00b400">
@@ -350,7 +350,6 @@
         line-height: 32px;
         word-wrap: break-word;
         cursor: default;
-        padding: 0 4px;
     }
 
     #task-profile-title:hover {

@@ -10,7 +10,7 @@
                     v-model="task.settingPlan"
                     checked="false"
                     v-if="!task.finished">
-                添加到计划日程
+                添加到计划
             </b-form-checkbox>
 
             <b-form style="margin-top: 10px">
@@ -28,7 +28,7 @@
                         <label style="width: 60px">日期:</label>
                         <b-form-input v-model="task.plan.date" type="date" :disabled="task.finished"></b-form-input>
                     </b-row>
-                    <b-row class="b-row">
+                    <b-row class="b-row" style="margin-top: 3px">
                         <label style="width: 60px">时间:</label>
                         <b-form-input v-model="task.plan.time" type="time" :disabled="task.finished"></b-form-input>
                     </b-row>
@@ -71,7 +71,7 @@
                           v-show="task.settingPlan"
                           :disabled="task.finished"
                           style="margin: 3px auto;display: block;">
-                    确认添加到计划日程
+                    确认添加到计划
                 </b-button>
 
                 <b-form-textarea
@@ -188,7 +188,7 @@
             this.task = null
           }
         }
-        this.$parent.$refs.calendar.getTaskList()
+        this.reloadCalendarTaskList()
       },
       editText () {
         const that = this
@@ -205,6 +205,9 @@
             alert('保存失败，程序内部错误')
           }
         })
+      },
+      reloadCalendarTaskList () {
+        this.$parent.$refs.calendar.getTaskList()
       }
     },
     watch: {
@@ -247,7 +250,7 @@
       },
       'task.settingPlan' (newVal) {
         if (newVal !== undefined) {
-          // 取消添加到日程后又再次选择添加到日程时清空上一次的选项
+          // 取消添加到计划后又再次选择添加到计划时清空上一次的选项
           if (!newVal) {
             this.task.plan = common.plan()
           }
