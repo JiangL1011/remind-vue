@@ -44,14 +44,14 @@ function createWindow () {
       tray.displayBalloon({
         title: 'To-Do powered by JL',
         content: '程序已最小化到系统托盘！',
-        icon: path.join(envPath, 'static/icons/lufi.jpg')
+        icon: path.join(envPath.staticPath, 'static/icons/lufi.jpg')
       })
       return false
     }
   })
 
   // 设置系统托盘
-  tray = new Tray(path.join(envPath, 'static/icons/lufi.ico'))
+  tray = new Tray(path.join(envPath.staticPath, 'static/icons/lufi.ico'))
   const contextMenu = Menu.buildFromTemplate([
     {label: '打开窗口', type: 'normal', click: () => mainWindow.show()},
     {
